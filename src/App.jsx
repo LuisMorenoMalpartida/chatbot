@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, ShoppingCart, Search, Monitor, Menu, Settings, Zap, Brain, ShieldCheck, Truck, CreditCard, Trash2, Plus, Minus, Filter, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 
-
-
 const API_KEY = import.meta.env.VITE_API_KEY || ""; 
 
 // 2. PARA VISTA PREVIA / LOCAL:
 // Déjalo así. Si lo corres en tu PC, pon tu clave entre las comillas si es necesario.
 //const API_KEY = ""; 
 
-// Usamos el modelo Flash por ser el más rápido y estable para este entorno web
+// Usamos el modelo Flash 
 const MODEL_ID = 'gemini-2.5-flash-preview-09-2025';
 
 // --- DATASET: CATÁLOGO EXTENSO (MEMORIA DEL BOT) ---
