@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, ShoppingCart, Search, Monitor, Menu, Settings, Zap, Brain, ShieldCheck, Truck, CreditCard, Trash2, Plus, Minus, Filter, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 
-// --- CONFIGURACIÓN DEL CEREBRO ---
-// Tu API Key personal de Google AI Studio
-const API_KEY = 'AIzaSyAoUKvDdAPpOEhYK9ZTBt_aG279ogw9rf0'; 
+
+
+const API_KEY = import.meta.env.VITE_API_KEY || ""; 
+
+// 2. PARA VISTA PREVIA / LOCAL:
+// Déjalo así. Si lo corres en tu PC, pon tu clave entre las comillas si es necesario.
+//const API_KEY = ""; 
 
 // Usamos el modelo Flash por ser el más rápido y estable para este entorno web
 const MODEL_ID = 'gemini-2.5-flash-preview-09-2025';
@@ -42,9 +46,9 @@ const formatPrice = (price) => `S/. ${price.toLocaleString('es-PE')}`;
 const HeroCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const slides = [
-    { id: 1, title: "Tecnologia del Futuro", subtitle: "Las mejores Laptops con procesadores de ultima generacion.", image: "https://images.pexels.com/photos/371589/pexels-photo-371589.jpeg?auto=compress&cs=tinysrgb&w=1920", color: "from-purple-900 to-blue-900" },
-    { id: 2, title: "Ofertas Gaming", subtitle: "Equipate con RTX y pantallas de 144Hz al mejor precio.", image: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1920", color: "from-red-900 to-orange-900" },
-    { id: 3, title: "Audio Inmersivo", subtitle: "Vive el sonido con cancelacion de ruido activa.", image: "https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=1920", color: "from-blue-900 to-cyan-900" }
+    { id: 1, title: "Tecnología del Futuro", subtitle: "Las mejores Laptops con procesadores de última generación.", image: "https://images.pexels.com/photos/371589/pexels-photo-371589.jpeg?auto=compress&cs=tinysrgb&w=1920", color: "from-purple-900 to-blue-900" },
+    { id: 2, title: "Ofertas Gaming", subtitle: "Equípate con RTX y pantallas de 144Hz al mejor precio.", image: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1920", color: "from-red-900 to-orange-900" },
+    { id: 3, title: "Audio Inmersivo", subtitle: "Vive el sonido con cancelación de ruido activa.", image: "https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=1920", color: "from-blue-900 to-cyan-900" }
   ];
 
   useEffect(() => {
@@ -64,7 +68,7 @@ const HeroCarousel = () => {
           <div className="relative z-10 h-full max-w-7xl mx-auto px-4 flex flex-col justify-center text-white">
             <h1 className="text-5xl md:text-7xl font-extrabold mb-4 animate-fade-in-up drop-shadow-lg">{slide.title}</h1>
             <p className="text-xl md:text-2xl max-w-2xl mb-8 font-light opacity-90 animate-fade-in-up delay-100 drop-shadow-md">{slide.subtitle}</p>
-            <button onClick={() => document.getElementById('ofertas').scrollIntoView({behavior: 'smooth'})} className="w-fit bg-white text-gray-900 font-bold py-3 px-8 rounded-full hover:scale-105 transition-transform shadow-lg animate-fade-in-up delay-200">Ver Catalogo</button>
+            <button onClick={() => document.getElementById('ofertas').scrollIntoView({behavior: 'smooth'})} className="w-fit bg-white text-gray-900 font-bold py-3 px-8 rounded-full hover:scale-105 transition-transform shadow-lg animate-fade-in-up delay-200">Ver Catálogo</button>
           </div>
         </div>
       ))}
@@ -147,7 +151,7 @@ const ProductCard = ({ product, onAdd }) => (
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hola. Soy InnoBot. Buscas algo para jugar o para trabajar? Preguntame lo que sea.", sender: 'bot' }
+    { id: 1, text: "Hola. Soy InnoBot. ¿Buscas algo para jugar o para trabajar? Pregúntame lo que sea.", sender: 'bot' }
   ]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -158,7 +162,6 @@ const ChatBot = () => {
   // --- LLAMADA A API REAL DE GOOGLE GEMINI ---
   const callGeminiAPI = async (userText) => {
     try {
-        // Modelo: Flash Preview para compatibilidad
         const model = MODEL_ID; 
         
         const context = `
@@ -178,6 +181,7 @@ const ChatBot = () => {
         Pregunta del usuario: "${userText}"
         `;
 
+        // Lógica para reintentos y uso de API Key
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -189,6 +193,15 @@ const ChatBot = () => {
         });
 
         const data = await response.json();
+        
+        if (!response.ok) {
+            console.error("Error API Gemini:", data);
+            if (data.error && data.error.code === 403) {
+                 return "Error de configuración: Mi API Key ha expirado o no es válida. Por favor avisa al administrador.";
+            }
+            return "Lo siento, tuve un problema técnico. ¿Podrías intentar de nuevo?";
+        }
+
         if (data.error) {
             console.error("Error Gemini:", data.error);
             return "Lo siento, tuve un problema al consultar mi cerebro. ¿Podrías intentar de nuevo?";
@@ -226,7 +239,7 @@ const ChatBot = () => {
         <div className="fixed bottom-24 right-6 z-50 w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col h-[500px] animate-fade-in-up overflow-hidden">
           <div className="bg-gray-900 p-4 text-white flex items-center gap-3 shadow-md">
             <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center animate-pulse"><Brain size={20}/></div>
-            <div><h3 className="font-bold">InnoBot AI</h3><p className="text-xs opacity-70">En linea ahora</p></div>
+            <div><h3 className="font-bold">InnoBot AI</h3><p className="text-xs opacity-70">En línea ahora</p></div>
             <button onClick={() => setIsOpen(false)} className="ml-auto hover:text-gray-300 p-1 rounded-md hover:bg-white/10 transition-colors"><X size={20}/></button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
@@ -241,7 +254,7 @@ const ChatBot = () => {
             <div ref={messagesEndRef} />
           </div>
           <form onSubmit={handleSendMessage} className="p-3 border-t bg-white flex gap-2 items-center">
-            <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} placeholder="Escribe aqui..." className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"/>
+            <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} placeholder="Escribe aquí..." className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"/>
             <button type="submit" className="p-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-transform hover:scale-105 shadow-md"><Send size={18}/></button>
           </form>
         </div>
@@ -293,7 +306,7 @@ const App = () => {
               <span className="font-bold text-2xl tracking-tight text-gray-900">Innov<span className="text-purple-600">Ventas</span></span>
             </div>
             <div className="hidden md:flex space-x-8 text-gray-600 font-medium text-sm uppercase tracking-wide">
-              <button onClick={() => scrollToSection('catalogo')} className="hover:text-purple-600 transition-colors hover:bg-purple-50 px-3 py-1 rounded-md">Catalogo</button>
+              <button onClick={() => scrollToSection('catalogo')} className="hover:text-purple-600 transition-colors hover:bg-purple-50 px-3 py-1 rounded-md">Catálogo</button>
               <button onClick={() => scrollToSection('ofertas')} className="hover:text-purple-600 transition-colors hover:bg-purple-50 px-3 py-1 rounded-md">Ofertas</button>
               <button onClick={() => scrollToSection('soporte')} className="hover:text-purple-600 transition-colors hover:bg-purple-50 px-3 py-1 rounded-md">Soporte</button>
             </div>
@@ -345,13 +358,13 @@ const App = () => {
       {DATASET.length > 0 && (
         <>
           <section id="ofertas" className="bg-white pt-8">
-            <ProductCarouselRow title="Ofertas Relampago" products={DATASET.filter(p => p.originalPrice)} onAdd={addToCart} />
+            <ProductCarouselRow title="Ofertas Relámpago" products={DATASET.filter(p => p.originalPrice)} onAdd={addToCart} />
           </section>
           <section className="bg-white">
-            <ProductCarouselRow title="Laptops Mas Vendidas" products={DATASET.filter(p => p.category === 'Laptops')} onAdd={addToCart} />
+            <ProductCarouselRow title="Laptops Más Vendidas" products={DATASET.filter(p => p.category === 'Laptops')} onAdd={addToCart} />
           </section>
           <section className="bg-white">
-            <ProductCarouselRow title="Moviles en Tendencia" products={DATASET.filter(p => p.category === 'Celulares')} onAdd={addToCart} />
+            <ProductCarouselRow title="Móviles en Tendencia" products={DATASET.filter(p => p.category === 'Celulares')} onAdd={addToCart} />
           </section>
         </>
       )}
@@ -367,7 +380,7 @@ const App = () => {
             </div>
           </div>
           {filteredProducts.length > 0 ? (
-             <ProductCarouselRow title={activeCategory === 'Todos' ? 'Resultados de Busqueda' : `Catalogo de ${activeCategory}`} products={filteredProducts} onAdd={addToCart} />
+             <ProductCarouselRow title={activeCategory === 'Todos' ? 'Resultados de Búsqueda' : `Catálogo de ${activeCategory}`} products={filteredProducts} onAdd={addToCart} />
           ) : (
              <div className="text-center py-20 bg-white rounded-2xl border border-gray-200 border-dashed"><Search size={64} className="mx-auto text-gray-300 mb-4"/><p className="text-gray-500 text-lg">No encontramos resultados.</p></div>
           )}
@@ -376,10 +389,10 @@ const App = () => {
 
       <footer id="soporte" className="bg-gray-900 text-gray-400 py-16">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div><h4 className="text-white font-bold text-xl mb-6 flex items-center gap-2"><Monitor className="text-purple-500" /> InnovVentas</h4><p className="text-sm leading-relaxed mb-4">Lideres en tecnologia con soporte IA. Envios a todo el Peru con garantia real.</p></div>
+            <div><h4 className="text-white font-bold text-xl mb-6 flex items-center gap-2"><Monitor className="text-purple-500" /> InnovVentas</h4><p className="text-sm leading-relaxed mb-4">Líderes en tecnología con soporte IA. Envíos a todo el Perú con garantía real.</p></div>
             <div><h4 className="text-white font-bold mb-6">Comprar</h4><ul className="space-y-3 text-sm"><li>Laptops Gamer</li><li>Smartphones</li><li>Ofertas</li></ul></div>
-            <div><h4 className="text-white font-bold mb-6">Soporte</h4><ul className="space-y-3 text-sm"><li>Estado de mi pedido</li><li>Garantias</li></ul></div>
-            <div><h4 className="text-white font-bold mb-6">Contactanos</h4><p className="text-sm mb-2 flex items-center gap-2"><Settings size={16}/> soporte@innovventas.pe</p></div>
+            <div><h4 className="text-white font-bold mb-6">Soporte</h4><ul className="space-y-3 text-sm"><li>Estado de mi pedido</li><li>Garantías</li></ul></div>
+            <div><h4 className="text-white font-bold mb-6">Contáctanos</h4><p className="text-sm mb-2 flex items-center gap-2"><Settings size={16}/> soporte@innovventas.pe</p></div>
         </div>
       </footer>
 
